@@ -4,6 +4,7 @@ from dataset import MyDataSet
 from model import UNET
 import torch.nn as nn
 from tqdm.auto import tqdm
+import os
 
 # --- CONFIG -- 
 NUM_CLASSES = 3
@@ -18,7 +19,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 def train():
-    train_ds = MyDataSet()
+    train_ds = MyDataSet(size=IMG_SIZE)
 
     train_data_loader = DataLoader(
         train_ds,
@@ -27,6 +28,9 @@ def train():
     )
 
     model = UNET(in_channels=3,out_channels=NUM_CLASSES).to(DEVICE)
+
+    if os.path.exists('unet.pth'):
+        model.load_state_dict(torch.load('unet.pth'))
 
     loss_fn = nn.CrossEntropyLoss()
 
