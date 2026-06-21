@@ -23,6 +23,8 @@ class MyDataSet(torch.utils.data.Dataset):
 
         img = img.resize((self.size,self.size))
         img = self.to_tensor(img)
+        img = transforms.Normalize(mean=[.485,.456,.406],
+                                   std=[.229,.224,.225])(img)
 
         mask = mask.resize((self.size,self.size),Image.Resampling.NEAREST)
         mask = np.array(mask)
