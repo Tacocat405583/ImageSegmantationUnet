@@ -5,14 +5,19 @@ from model import UNET
 import torch.nn as nn
 from tqdm.auto import tqdm
 import os
+import torch_directml
 
 # --- CONFIG -- 
 NUM_CLASSES = 3
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 LR = 1e-3
-EPOCHS = 4
+EPOCHS = 20
 IMG_SIZE = 256
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+# NVIDIA: uncomment below and comment out the AMD line
+# DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+# AMD: uncomment below and comment out the NVIDIA line
+DEVICE = torch_directml.device()
+
 # ----------
 
 
@@ -30,7 +35,7 @@ def train():
     model = UNET(in_channels=3,out_channels=NUM_CLASSES).to(DEVICE)
 
     if os.path.exists('unet.pth'):
-        model.load_state_dict(torch.load('unet.pth'))
+        model.load_state_dict(torch.load('unet.pth', weights_only=True))
 
     loss_fn = nn.CrossEntropyLoss()
 
@@ -68,6 +73,7 @@ def train():
 
 
 if __name__ == "__main__":
+    print(f"Using device: {DEVICE}")
     train()
 
     
