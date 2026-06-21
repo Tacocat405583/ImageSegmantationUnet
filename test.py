@@ -4,12 +4,15 @@ from dataset import MyDataSet
 from model import UNET
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import torch_directml
 
 # --- CONFIG -- 
 NUM_CLASSES = 3
 BATCH_SIZE = 8
 IMG_SIZE = 256
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+#IF AMD DEVICE UNCOMMENT
+DEVICE = torch_directml.device()
 # ----------
 
 def test():
@@ -61,6 +64,8 @@ def visualize(num_samples=10):
     axes[0, 1].set_title('Ground Truth')
     axes[0, 2].set_title('Prediction')
 
+    loss_fn = nn.CrossEntropyLoss()
+
     with torch.no_grad():
         for i in range(num_samples):
             img, mask = test_ds[i]
@@ -68,11 +73,15 @@ def visualize(num_samples=10):
             pred = model(img.unsqueeze(0).to(DEVICE))
             pred_mask = pred.argmax(dim=1).squeeze(0).cpu()
 
+            loss = loss_fn(pred, mask.unsqueeze(0).long().to(DEVICE)).item()
+            confidence = pred.softmax(dim=1).max(dim=1).values.mean().item()
+
             display_img = (img * std + mean).permute(1, 2, 0).clamp(0, 1)
 
             axes[i, 0].imshow(display_img)
             axes[i, 1].imshow(mask, vmin=0, vmax=2)
             axes[i, 2].imshow(pred_mask, vmin=0, vmax=2)
+            axes[i, 2].set_title(f"loss={loss:.3f}  conf={confidence:.1%}", fontsize=8)
 
             for ax in axes[i]:
                 ax.axis('off')
